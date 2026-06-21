@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test:scoring": "tsx scripts/test-scoring.ts"
+    "test:scoring": "tsx scripts/test-scoring.ts",
+    "seed:redis": "tsx scripts/seed-redis.ts",
+    "test:retrieval": "tsx scripts/test-retrieval.ts"
   },
   "repository": {
     "type": "git",
@@ -22,9 +24,12 @@
   "homepage": "https://github.com/EvxLee/ContextSwitcher#readme",
   "private": "true",
   "dependencies": {
+    "@huggingface/transformers": "^4.2.0",
+    "@next/env": "^16.2.9",
     "next": "^16.2.9",
     "react": "^19.2.7",
-    "react-dom": "^19.2.7"
+    "react-dom": "^19.2.7",
+    "redis": "^6.0.0"
   },
   "devDependencies": {
     "@types/node": "^26.0.0",
