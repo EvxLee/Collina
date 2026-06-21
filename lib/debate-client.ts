@@ -13,13 +13,20 @@
 import * as mock from "./mockDebateClient";
 import * as real from "./realDebateClient";
 
-const REAL = process.env.NEXT_PUBLIC_USE_REAL_PIPELINE === "true";
-
-// Live mic ALWAYS needs the real streaming pipeline (mock can't capture a mic);
-// "demo"/File respect the flag so the mock demo stays the safe default.
+// "demo" / "Start the chaos" ALWAYS plays the scripted mock — bulletproof, no
+// keys, no clip, can't fail. "mic" / "Go live" ALWAYS uses the real streaming
+// pipeline. (No env flag — clearer and avoids breaking the safe demo.)
 export const startDebate: typeof real.startDebate = (source, onTurn, onComplete, onInterim) => {
-  const impl = source === "mic" || REAL ? real : mock;
+  const impl = source === "mic" ? real : mock;
   return impl.startDebate(source, onTurn, onComplete, onInterim);
 };
 
-export const getVerdict: typeof real.getVerdict = REAL ? real.getVerdict : mock.getVerdict;
+// Use the real Claude verdict when the API is reachable; fall back to the mock
+// verdict so the offline demo never breaks.
+export const getVerdict: typeof real.getVerdict = async (session) => {
+  try {
+    return await real.getVerdict(session);
+  } catch {
+    return mock.getVerdict(session);
+  }
+};

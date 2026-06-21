@@ -1,23 +1,17 @@
-// app/api/deepgram-token/route.ts — mint a short-lived Deepgram token so the
-// BROWSER can open the live transcription socket without ever seeing the API key.
-// Deepgram's grant() returns a ~30s JWT with usage::write for the voice APIs.
+// app/api/deepgram-token/route.ts — hand the browser what it needs to open the
+// Deepgram live socket. Browsers can't set an Authorization header on a
+// WebSocket and can't use the JWT temp-token flow there, so the only thing that
+// works client-side is subprotocol auth with the API key: new WebSocket(url,
+// ["token", key]). We return the key from this same-origin route (it stays out
+// of the JS bundle; rotate it after the event).
 import { NextResponse } from "next/server";
-import { getDeepgram } from "@/lib/deepgram";
 
 export const runtime = "nodejs";
 
 export async function POST() {
-  try {
-    const res = await getDeepgram().auth.v1.tokens.grant();
-    return NextResponse.json({
-      access_token: res.access_token,
-      expires_in: res.expires_in ?? 30,
-    });
-  } catch (err) {
-    console.error("[/api/deepgram-token]", err);
-    return NextResponse.json(
-      { error: (err as Error).message || "Token grant failed." },
-      { status: 500 }
-    );
+  const key = process.env.DEEPGRAM_API_KEY;
+  if (!key) {
+    return NextResponse.json({ error: "DEEPGRAM_API_KEY is not set." }, { status: 500 });
   }
+  return NextResponse.json({ key });
 }

@@ -103,7 +103,7 @@ export function startMicDebate(topic: string, handlers: MicHandlers): { stop: ()
   }
 
   (async () => {
-    const { access_token } = await postJSON<{ access_token: string }>("/api/deepgram-token", {});
+    const { key } = await postJSON<{ key: string }>("/api/deepgram-token", {});
     if (ended) return;
 
     mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -120,8 +120,9 @@ export function startMicDebate(topic: string, handlers: MicHandlers): { stop: ()
       punctuate: "true",
       utterance_end_ms: "1000",
     });
-    // Deepgram browser auth: pass the temp token as a websocket subprotocol.
-    socket = new WebSocket(`${DEEPGRAM_WS}?${params.toString()}`, ["token", access_token]);
+    // Deepgram browser auth: API key via websocket subprotocol (only method that
+    // works in a browser — headers and JWT temp-tokens don't).
+    socket = new WebSocket(`${DEEPGRAM_WS}?${params.toString()}`, ["token", key]);
 
     socket.onopen = () => {
       const mimeType = pickMimeType();
